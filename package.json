@@ -1,0 +1,42 @@
+{
+  "name": "openmusic-api-v3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "start-dev": "nodemon ./src/server.js",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "migrate": "node-pg-migrate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/irfandwisamudra/openmusic-api-v3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/irfandwisamudra/openmusic-api-v3/issues"
+  },
+  "homepage": "https://github.com/irfandwisamudra/openmusic-api-v3#readme",
+  "dependencies": {
+    "@hapi/hapi": "^21.4.3",
+    "@hapi/jwt": "^3.2.0",
+    "auto-bind": "^4.0.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
+    "joi": "^18.0.1",
+    "nanoid": "^5.1.5",
+    "node-pg-migrate": "^8.0.3",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-dicodingacademy": "^0.9.5",
+    "eslint-plugin-import": "^2.32.0",
+    "nodemon": "^3.1.10"
+  }
+}
