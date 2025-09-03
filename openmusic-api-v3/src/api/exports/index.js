@@ -6,10 +6,10 @@ module.exports = {
   version: '1.0.0',
   register: async (
     server,
-    { producerService, playlistsService, validator }
+    { service, playlistsService, validator }
   ) => {
     const exportsHandler = new ExportsHandler(
-      producerService,
+      service,
       playlistsService,
       validator
     );

@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 // Exceptions
 const ClientError = require('./exceptions/ClientError');
@@ -42,14 +44,41 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// Activities
+const activities = require('./api/activities');
+const ActivitiesService = require('./services/postgres/ActivitiesService');
+
+// Exports
+const _exports = require('./api/exports');
+const producerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
+// Uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
+// UserAlbumsLikes
+const userAlbumLikes = require('./api/userAlbumLikes');
+const UserAlbumLikesService = require('./services/postgres/UserAlbumLikesService');
+
+// Cache
+const CacheService = require('./services/redis/CacheService');
+
 const init = async () => {
-  const albumsService = new AlbumsService();
+  const cacheService = new CacheService();
+  const activitiesService = new ActivitiesService();
+  const albumsService = new AlbumsService(cacheService);
   const songsService = new SongsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const collaborationsService = new CollaborationsService(usersService);
   const playlistsService = new PlaylistsService(collaborationsService);
   const playlistSongsService = new PlaylistSongsService();
+  const userAlbumLikesService = new UserAlbumLikesService(cacheService);
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'api/uploads/file/images')
+  );
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -65,6 +94,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -120,16 +152,18 @@ const init = async () => {
     {
       plugin: playlists,
       options: {
-        service: playlistsService,
+        playlistsService,
+        activitiesService,
         validator: PlaylistsValidator,
       },
     },
     {
       plugin: playlistSongs,
       options: {
-        playlistsService,
         playlistSongsService,
+        playlistsService,
         songsService,
+        activitiesService,
         validator: PlaylistSongsValidator,
       },
     },
@@ -139,6 +173,36 @@ const init = async () => {
         collaborationsService,
         playlistsService,
         validator: CollaborationsValidator,
+      },
+    },
+    {
+      plugin: activities,
+      options: {
+        playlistsService,
+        activitiesService,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        service: producerService,
+        playlistsService,
+        validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        albumsService,
+        validator: UploadsValidator,
+      },
+    },
+    {
+      plugin: userAlbumLikes,
+      options: {
+        userAlbumLikesService,
+        albumsService,
       },
     },
   ]);

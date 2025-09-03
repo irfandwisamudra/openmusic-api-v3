@@ -1,33 +1,34 @@
 /* eslint-disable camelcase */
 
 exports.up = (pgm) => {
-  pgm.createTable('collaborations', {
+  pgm.createTable('user_album_likes', {
     id: {
       type: 'VARCHAR(50)',
+      notNull: true,
       primaryKey: true,
     },
-    playlist_id: {
+    user_id: {
       type: 'VARCHAR(50)',
       notNull: true,
     },
-    user_id: {
+    album_id: {
       type: 'VARCHAR(50)',
       notNull: true,
     },
   });
 
   pgm.addConstraint(
-    'collaborations',
-    'fk_collaborations.user_id_users.id',
+    'user_album_likes',
+    'fk_user_album_likes.user_id_users.id',
     'FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE'
   );
   pgm.addConstraint(
-    'collaborations',
-    'fk_collaborations.playlist_id_playlists.id',
-    'FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE'
+    'user_album_likes',
+    'fk_user_album_likes.album_id_albums.id',
+    'FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE'
   );
 };
 
 exports.down = (pgm) => {
-  pgm.dropTable('collaborations');
+  pgm.dropTable('user_album_likes');
 };
