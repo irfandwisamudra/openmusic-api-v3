@@ -68,13 +68,13 @@ const CacheService = require('./services/redis/CacheService');
 const init = async () => {
   const cacheService = new CacheService();
   const activitiesService = new ActivitiesService();
-  const albumsService = new AlbumsService(cacheService);
-  const songsService = new SongsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const collaborationsService = new CollaborationsService(usersService);
   const playlistsService = new PlaylistsService(collaborationsService);
   const playlistSongsService = new PlaylistSongsService();
+  const albumsService = new AlbumsService(cacheService);
+  const songsService = new SongsService();
   const userAlbumLikesService = new UserAlbumLikesService(cacheService);
   const storageService = new StorageService(
     path.resolve(__dirname, 'api/uploads/file/images')

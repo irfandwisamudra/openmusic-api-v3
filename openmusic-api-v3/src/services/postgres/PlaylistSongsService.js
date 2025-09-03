@@ -10,21 +10,21 @@ class PlaylistSongsService {
   async addPlaylistSong(playlistId, songId) {
     const id = `playlistsong-${nanoid(16)}`;
     const query = {
-      text: 'INSERT INTO playlist_songs (id, playlist_id, song_id) VALUES($1, $2, $3) RETURNING id',
+      text: 'INSERT INTO playlist_songs (id, playlist_id, song_id) VALUES ($1,$2,$3) RETURNING id',
       values: [id, playlistId, songId],
     };
     const result = await this._pool.query(query);
-    if (!result.rows[0].id) {
+    if (!result.rows.length)
       throw new InvariantError('Lagu gagal ditambahkan ke playlist');
-    }
+    return result.rows[0].id;
   }
 
   async getPlaylistSongs(playlistId) {
     const query = {
       text: `SELECT s.id, s.title, s.performer
-            FROM songs s
-            JOIN playlist_songs ps ON s.id = ps.song_id
-            WHERE ps.playlist_id = $1`,
+          FROM songs s
+          JOIN playlist_songs ps ON s.id = ps.song_id
+          WHERE ps.playlist_id = $1`,
       values: [playlistId],
     };
     const result = await this._pool.query(query);
@@ -32,14 +32,12 @@ class PlaylistSongsService {
   }
 
   async deletePlaylistSong(songId, playlistId) {
-    const query = {
-      text: 'DELETE FROM playlist_songs WHERE song_id = $1 AND playlist_id = $2 RETURNING id',
+    const res = await this._pool.query({
+      text: 'DELETE FROM playlist_songs WHERE song_id=$1 AND playlist_id=$2 RETURNING id',
       values: [songId, playlistId],
-    };
-    const result = await this._pool.query(query);
-    if (!result.rows.length) {
+    });
+    if (!res.rows.length)
       throw new InvariantError('Lagu gagal dihapus dari playlist');
-    }
   }
 }
 
