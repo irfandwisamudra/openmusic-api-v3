@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModel } = require('../../utils');
+const { mapAlbumDBToModel, mapSongDBToModel } = require('../../utils');
 
 class AlbumsService {
   constructor(cacheService) {
@@ -34,17 +34,9 @@ class AlbumsService {
       values: [id],
     });
 
-    const a = mapDBToModel ? mapDBToModel(albumRes.rows[0]) : albumRes.rows[0];
     const album = {
-      id: a.id,
-      name: a.name,
-      year: a.year,
-      coverUrl: a.coverUrl ?? a.cover_url ?? null,
-      songs: songsRes.rows.map(({ id, title, performer }) => ({
-        id,
-        title,
-        performer,
-      })),
+      ...mapAlbumDBToModel(albumRes.rows[0]),
+      songs: songsRes.rows.map(mapSongDBToModel),
     };
 
     await this._cache?.setJSON(cacheKey, album);
