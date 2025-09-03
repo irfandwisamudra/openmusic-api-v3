@@ -1,6 +1,8 @@
 # OpenMusic API v3
 
-Ini adalah versi lanjutan dari proyek **[OpenMusic API v2](https://github.com/irfandwisamudra/openmusic-api-v2)**, yang kini dilengkapi dengan fitur **ekspor playlist via RabbitMQ**, **unggah sampul album**, serta **suka/batal suka album dengan cache Redis**. Proyek ini merupakan _submission_ untuk kelas **Belajar Fundamental Back-End dengan JavaScript** (Dicoding).
+Ini adalah versi lanjutan dari proyek **[OpenMusic API v2](https://github.com/irfandwisamudra/openmusic-api-v2)**, yang kini dilengkapi dengan fitur **ekspor playlist via RabbitMQ**, **unggah sampul album**, serta **suka/batal suka album dengan cache Redis**. Selain itu, proyek ini juga menambahkan **optimisasi caching detail album** untuk meningkatkan performa.
+
+Proyek ini merupakan _submission_ untuk kelas **Belajar Fundamental Back-End dengan JavaScript** (Dicoding).
 
 API ini berfungsi sebagai _back-end_ pemutar musik: mengelola data album, lagu, pengguna, playlist, kolaborasi, hingga ekspor dan unggah sampul.
 
@@ -8,14 +10,16 @@ API ini berfungsi sebagai _back-end_ pemutar musik: mengelola data album, lagu, 
 
 ## Fitur
 
-- [x] **Ekspor Lagu pada Playlist (V3)**
-      Producer mengirim `{ playlistId, targetEmail }` ke RabbitMQ, Consumer membuat JSON dan mengirim lewat email (SMTP).
-- [x] **Unggah Sampul Album (V3)**
-      Upload `cover` (image, max **512 KB**) ke **storage lokal**. `GET /albums/{id}` menampilkan `coverUrl`.
-- [x] **Suka/Batal Suka Album + Cache (V3)**
-      `POST/DELETE /albums/{id}/likes`, `GET /albums/{id}/likes` menggunakan **Redis** dengan TTL **30 menit** + header `X-Data-Source`.
-- [x] **Mempertahankan Fitur v1/v2**
-      CRUD Album & Lagu, Registrasi & Autentikasi (JWT), Playlist, (Opsional) Kolaborasi & Aktivitas, Validasi, Foreign Key, Error Handling.
+- [x] **Ekspor Lagu pada Playlist (V3)**  
+       Producer mengirim `{ playlistId, targetEmail }` ke RabbitMQ, Consumer membuat JSON dan mengirim lewat email (SMTP).
+- [x] **Unggah Sampul Album (V3)**  
+       Upload `cover` (image, max **512 KB**) ke **storage lokal**. `GET /albums/{id}` menampilkan `coverUrl`.
+- [x] **Suka/Batal Suka Album + Cache (V3)**  
+       `POST/DELETE /albums/{id}/likes`, `GET /albums/{id}/likes` menggunakan **Redis** dengan TTL **30 menit** + header `X-Data-Source`.
+- [x] **Caching Detail Album (Tambahan)**  
+       `GET /albums/{id}` menyimpan data album + daftar lagu di Redis (TTL **30 menit**). Cache otomatis terhapus saat album diubah, dihapus, atau sampul diperbarui.
+- [x] **Mempertahankan Fitur v1/v2**  
+       CRUD Album & Lagu, Registrasi & Autentikasi (JWT), Playlist, (Opsional) Kolaborasi & Aktivitas, Validasi, Foreign Key, Error Handling.
 
 ---
 
@@ -157,13 +161,13 @@ npm run start
 
 ### Albums
 
-| Method | Path                  | Auth | Body / Query                            | Keterangan                  |
-| :----: | --------------------- | :--: | --------------------------------------- | --------------------------- |
-|  POST  | `/albums`             |  ✓   | `{ name, year }`                        | Tambah album                |
-|  GET   | `/albums/{id}`        |  –   | –                                       | Detail album (`coverUrl`)   |
-|  PUT   | `/albums/{id}`        |  ✓   | `{ name, year }`                        | Ubah album                  |
-| DELETE | `/albums/{id}`        |  ✓   | –                                       | Hapus album                 |
-|  POST  | `/albums/{id}/covers` |  ✓   | **Form-Data**: `cover` (image, ≤ 512KB) | Unggah sampul album (lokal) |
+| Method | Path                  | Auth | Body / Query                            | Keterangan                                        |
+| :----: | --------------------- | :--: | --------------------------------------- | ------------------------------------------------- |
+|  POST  | `/albums`             |  ✓   | `{ name, year }`                        | Tambah album                                      |
+|  GET   | `/albums/{id}`        |  –   | –                                       | Detail album + lagu (`coverUrl`) **dengan cache** |
+|  PUT   | `/albums/{id}`        |  ✓   | `{ name, year }`                        | Ubah album (hapus cache)                          |
+| DELETE | `/albums/{id}`        |  ✓   | –                                       | Hapus album (hapus cache)                         |
+|  POST  | `/albums/{id}/covers` |  ✓   | **Form-Data**: `cover` (image, ≤ 512KB) | Unggah sampul album (hapus cache)                 |
 
 ### Songs
 
