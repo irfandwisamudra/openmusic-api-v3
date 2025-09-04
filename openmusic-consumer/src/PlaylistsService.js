@@ -2,28 +2,41 @@ const { Pool } = require('pg');
 
 class PlaylistsService {
   constructor() {
-    this._pool = new Pool({
-      host: process.env.PGHOST,
-      port: Number(process.env.PGPORT) || 5432,
-      database: process.env.PGDATABASE,
-      user: process.env.PGUSER,
-      password:
-        process.env.PGPASSWORD != null ? String(process.env.PGPASSWORD) : '',
-    });
+    this._pool = new Pool();
   }
 
   async getPlaylistSongs(playlistId) {
-    const songs = await this._pool.query({
+    const playlistRes = await this._pool.query({
+      text: 'SELECT id, name FROM playlists WHERE id = $1',
+      values: [playlistId],
+    });
+
+    if (!playlistRes.rowCount) {
+      throw new Error('Playlist tidak ditemukan');
+    }
+
+    const songsRes = await this._pool.query({
       text: `
         SELECT s.id, s.title, s.performer
         FROM playlist_songs ps
         JOIN songs s ON s.id = ps.song_id
         WHERE ps.playlist_id = $1
-        ORDER BY s.title ASC
+        ORDER BY s.title
       `,
       values: [playlistId],
     });
-    return songs.rows;
+
+    return {
+      playlist: {
+        id: playlistRes.rows[0].id,
+        name: playlistRes.rows[0].name,
+        songs: songsRes.rows.map(({ id, title, performer }) => ({
+          id,
+          title,
+          performer,
+        })),
+      },
+    };
   }
 }
 
